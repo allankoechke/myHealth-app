@@ -1,0 +1,32 @@
+<RCC>
+    <qresource prefix="/">
+        <file>qtquickcontrols2.conf</file>
+        <file>qml/main.qml</file>
+        <file>qml/views/SplashView.qml</file>
+        <file>qml/views/LoginView.qml</file>
+        <file>qml/views/SignUpView.qml</file>
+        <file>qml/views/DeviceSwipeView.qml</file>
+        <file>qml/views/SettingsView.qml</file>
+        <file>qml/views/AppView.qml</file>
+        <file>assets/fonts/fontawesome.otf</file>
+        <file>qml/components/AppText.qml</file>
+        <file>qml/components/Icon.qml</file>
+        <file>qml/components/CustomButton.qml</file>
+        <file>qml/components/CircularImage.qml</file>
+        <file>assets/images/pexels-photo-1681010.jpeg</file>
+        <file>qml/components/DashboardElement.qml</file>
+        <file>assets/fonts/Gobold Regular.otf</file>
+        <file>qml/components/ChartWidget.qml</file>
+        <file>qml/views/SearchView.qml</file>
+        <file>qml/components/MenuDrawer.qml</file>
+        <file>qml/components/MenuButton.qml</file>
+        <file>assets/models/DeviceModel.qml</file>
+        <file>qml/components/InfoPopup.qml</file>
+        <file>qml/components/NewDevicePopup.qml</file>
+        <file>qml/components/SpinnerLoader.qml</file>
+        <file>qml/components/SettingsWidget.qml</file>
+        <file>assets/images/user.png</file>
+        <file>assets/myHealth-logo.png</file>
+        <file>qml/views/HomePage.qml</file>
+    </qresource>
+</RCC>
