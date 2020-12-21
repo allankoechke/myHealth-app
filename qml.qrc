@@ -28,5 +28,7 @@
         <file>assets/images/user.png</file>
         <file>assets/myHealth-logo.png</file>
         <file>qml/views/HomePage.qml</file>
+        <file>assets/myHealth-logo-small.png</file>
+        <file>assets/smartwatch.png</file>
     </qresource>
 </RCC>

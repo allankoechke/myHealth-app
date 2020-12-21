@@ -50,59 +50,20 @@ Item {
                 }
             }
 
-            TextInput
+            AppText
             {
-                id: searchTextInput
                 Layout.fillWidth: true
                 Layout.minimumHeight: 34
                 Layout.fillHeight: true
                 Layout.leftMargin: 15
-                Layout.rightMargin: text===""? 15:5
 
                 color: "white"
                 font.pixelSize: 12
                 height: 35
-                verticalAlignment: TextField.AlignVCenter
-
-                Text
-                {
-                    visible: parent.text===""
-                    font.pixelSize: parent.font.pixelSize
-                    color: Qt.darker(parent.color, 1.5)
-                    text: qsTr("Search name or device ID")
-
-                    anchors.left: parent.left
-                    anchors.verticalCenter: parent.verticalCenter
-                }
+                verticalAlignment: AppText.AlignVCenter
+                horizontalAlignment: AppText.AlignHCenter
+                text: "Doctor's feedback"
             }
-
-            Item {
-                id: clearInput
-                height: 30
-                width: height
-                visible: searchTextInput.text!==""
-
-                Layout.alignment: Qt.AlignVCenter
-
-                Icon
-                {
-                    icon: "\uf00d"
-                    color: "white"
-                    size: 15
-
-                    anchors.centerIn: parent
-                }
-
-                MouseArea
-                {
-                    anchors.fill: parent
-                    onClicked: {
-                        // Clear the search text input data
-                        searchTextInput.text=""
-                    }
-                }
-            }
-
         }
     }
 
@@ -115,5 +76,86 @@ Item {
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.margins: 10
+
+        ScrollView
+        {
+            anchors.fill: parent
+            spacing: 5
+            clip: true
+
+            ListView
+            {
+                id: lst
+                width: parent.width
+                height: parent.height
+                model: 8
+                spacing: 5
+
+                delegate: Component{
+                    Item{
+                        width: lst.width
+                        height: 50
+
+                        Rectangle
+                        {
+                            id: rec
+                            width: parent.width-20
+                            height: parent.height
+                            radius: 4
+                            color: Qt.lighter(bgColor, 1.4)
+
+                            anchors.centerIn: parent
+
+                            Column
+                            {
+                                anchors.centerIn: parent
+                                spacing: 2
+
+                                Item{
+                                    height: 14
+                                    width: rec.width
+
+                                    AppText
+                                    {
+                                        text: "Date: 2020-12-20 12:32:00"
+                                        color: Qt.lighter(bgColor, 2.4)
+                                        size: 10
+
+                                        anchors.verticalCenter: parent.verticalCenter
+                                        anchors.left: parent.left
+                                        anchors.leftMargin: 10
+                                    }
+                                }
+
+                                Rectangle
+                                {
+                                    width: rec.width-20
+                                    height: 1
+                                    Layout.leftMargin: 10
+                                    color: Qt.lighter(bgColor, 1.6)
+                                }
+
+                                Item{
+                                    height: 20
+                                    width: rec.width
+
+                                    AppText
+                                    {
+                                        text: "Take a glass of minced juice and rest."
+                                        color: "white"
+                                        elide: AppText.ElideRight
+                                        size: 10
+                                        width: parent.width-20
+                                        anchors.leftMargin: 10
+                                        anchors.left: parent.left
+                                        anchors.verticalCenter: parent.verticalCenter
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 }

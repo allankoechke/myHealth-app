@@ -71,6 +71,7 @@ Item {
                 id: searchDevice
                 height: 30
                 width: height
+                visible: false
 
                 Layout.alignment: Qt.AlignVCenter
                 Layout.rightMargin: 10

@@ -26,22 +26,87 @@ Rectangle {
         anchors.fill: parent
         spacing: 5
 
-        Rectangle
-        {
-            Layout.preferredHeight: 105
-            Layout.preferredWidth: 105
+        Item {
+            Layout.preferredWidth: root.width*0.8
+            Layout.preferredHeight: 110
             Layout.alignment: Qt.AlignHCenter
-            Layout.topMargin: 20
+            Layout.bottomMargin: 30
 
-            color: "white"
-            radius: height/2
-
-            CircularImage
+            RowLayout
             {
-                anchors.centerIn: parent
+                anchors.fill: parent
+                spacing: 5
 
-                source: "qrc:/assets/images/pexels-photo-1681010.jpeg"
+                Rectangle
+                {
+                    Layout.preferredHeight: 105
+                    Layout.preferredWidth: 105
+                    Layout.alignment: Qt.AlignHCenter
+                    Layout.topMargin: 20
+
+                    color: "transparent"
+                    radius: height/2
+                    border.width: 5
+                    border.color: "white"
+
+                    CircularImage
+                    {
+                        anchors.centerIn: parent
+
+                        source: "qrc:/assets/smartwatch.png"
+                    }
+                }
+
+                Rectangle
+                {
+                    Layout.fillHeight: true
+                    Layout.preferredWidth: 1
+                    Layout.leftMargin: 10
+                    color: Qt.lighter(bgColor, 1.8)
+                }
+
+                Item {
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+
+                    ColumnLayout
+                    {
+                        anchors.fill: parent
+                        spacing: 10
+
+                        Item{
+                            Layout.fillWidth: true
+                            Layout.fillHeight: true
+                        }
+
+                        AppText
+                        {
+                            color: QmlInterface.isOnline? temperatureColor:"red"
+                            size: 12
+                            text: QmlInterface.isOnline? qsTr("Status: Online"):qsTr("Status: Offline")
+
+                            Layout.alignment: Qt.AlignHCenter
+                            Layout.topMargin: 10
+                        }
+
+                        AppText
+                        {
+                            color: "white"
+                            size: 12
+                            text: QmlInterface.isOnline? qsTr("Connected ..."):qsTr("Disconnected ...")
+
+                            Layout.alignment: Qt.AlignHCenter
+                            Layout.topMargin: 10
+                        }
+
+                        Item{
+                            Layout.fillWidth: true
+                            Layout.fillHeight: true
+                        }
+                    }
+                }
             }
+
         }
 
         AppText
@@ -56,55 +121,21 @@ Rectangle {
 
         AppText
         {
-            color: "white"
-            size: 15
-            text: qsTr("Health Status Bar")
-
-            Layout.alignment: Qt.AlignHCenter
-            Layout.topMargin: 10
-        }
-
-        ProgressBar
-        {
-            id: pb
-            Layout.preferredHeight: 10
-            Layout.preferredWidth: root.width*0.8
-            Layout.alignment: Qt.AlignHCenter
-
-            value: QmlInterface.healthStatusValue
-            from: 0
-            to: 100
-
-            background: Rectangle {
-                implicitWidth: 250
-                implicitHeight: 6
-                color: "#c2cad3"
-                radius: height/2
-                border.width: 1
-                border.color: "silver"
-            }
-
-            contentItem: Item {
-                implicitWidth: 250
-                implicitHeight: 4
-
-                Rectangle {
-                    width: pb.visualPosition * parent.width
-                    height: parent.height
-                    radius: height/2
-                    color: "#06be24"
-                }
-            }
-        }
-
-        AppText
-        {
-            color: "white"
+            color: Qt.darker(temperatureColor, 1.4)
             size: 13
             font.bold: true
             text: qsTr("VITAL SIGNS")
 
             Layout.alignment: Qt.AlignHCenter
+            Layout.topMargin: 10
+        }
+
+        Rectangle
+        {
+            Layout.preferredWidth: root.width*0.8
+            Layout.preferredHeight: 1
+            Layout.alignment: Qt.AlignHCenter
+            color: Qt.lighter(bgColor, 1.8)
         }
 
         Item{
@@ -128,7 +159,7 @@ Rectangle {
                     label: qsTr("TEMP")
                     labelSize: 10
                     icon: "\uf2c8"
-                    // value: QmlInterface.userTemperature
+                    value: QmlInterface.userTemperature
                     unit: qsTr("°C")
                     colorFormat: temperatureColor
                 }
@@ -148,7 +179,6 @@ Rectangle {
 
                 DashboardElement{
                     Layout.preferredWidth: (lay.width-5)/2
-                    // Layout.preferredHeight: 100
                     Layout.column: 0
                     Layout.row: 1
 
@@ -161,7 +191,6 @@ Rectangle {
 
                 DashboardElement{
                     Layout.preferredWidth: (lay.width-5)/2
-                    // Layout.preferredHeight: 100
                     Layout.column: 1
                     Layout.row: 1
 
@@ -173,7 +202,6 @@ Rectangle {
                 }
                 DashboardElement{
                     Layout.preferredWidth: (lay.width-5)/2
-                    // Layout.preferredHeight: 100
                     Layout.column: 0
                     Layout.row: 2
 
@@ -187,7 +215,6 @@ Rectangle {
 
                 DashboardElement{
                     Layout.preferredWidth: (lay.width-5)/2
-                    // Layout.preferredHeight: 100
                     Layout.column: 1
                     Layout.row: 2
 
@@ -202,8 +229,73 @@ Rectangle {
         }
 
         Item{
+            id: p
             Layout.fillHeight: true
             Layout.fillWidth: true
+
+            Column
+            {
+                anchors.centerIn: parent
+
+                AppText
+                {
+                    color: foreBlue
+                    size: 10
+                    text: "Last Sync : 5s ago"
+
+                    height: 30
+                    verticalAlignment: AppText.AlignVCenter
+                    // anchors.leftMargin: p.width * 0.8
+                }
+
+                Rectangle
+                {
+                    height: 40
+                    width: p.width * 0.8
+                    color: Qt.lighter(bgColor, 1.7)
+                    radius: 4
+
+                    Icon
+                    {
+                        id: ico1
+                        color: "orange"
+                        size: 15
+                        icon: "\uf82e"
+
+                        anchors.verticalCenter: parent.verticalCenter
+                        anchors.left: parent.left
+                        anchors.leftMargin: 5
+                    }
+
+                    AppText
+                    {
+                        size: 15
+                        text: "Doctor's Feedback"
+                        color: "white"
+
+                        anchors.verticalCenter: parent.verticalCenter
+                        anchors.left: ico1.right
+                        anchors.leftMargin: 5
+                    }
+
+                    Icon
+                    {
+                        color: "white"
+                        size: 15
+                        icon: "\uf061"
+
+                        anchors.verticalCenter: parent.verticalCenter
+                        anchors.right: parent.right
+                        anchors.rightMargin: 5
+                    }
+
+                    MouseArea
+                    {
+                        anchors.fill: parent
+                        onClicked: stackIndex=5
+                    }
+                }
+            }
         }
 
     }
