@@ -44,7 +44,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             print(f"Selected Values => {stringToSend}")
 
             s.sendall(str.encode(stringToSend))
-            sleep(2.5)
+            sleep(20)
 
     except:
         # recreate the socket and reconnect

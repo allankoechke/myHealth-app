@@ -114,7 +114,7 @@ Rectangle {
             id: nm
             color: "white"
             size: 17
-            text: qsTr("Peter Mathews")
+            text: userFullName
 
             Layout.alignment: Qt.AlignHCenter
         }

@@ -110,7 +110,7 @@ Item {
             color: "grey"
             size: 13
             bold: true
-            text: qsTr("John Doe")
+            text: userFullName
 
             Layout.alignment: Qt.AlignHCenter
         }
@@ -165,6 +165,11 @@ Item {
             {
                 anchors.fill: parent
                 // TODO to work on logout script
+
+                onClicked: {
+                    QmlInterface.isUserLoggedIn = false;
+                    stackIndex = 1;
+                }
             }
         }
 

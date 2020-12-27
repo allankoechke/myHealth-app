@@ -15,12 +15,11 @@ public:
         setAutoDelete(false);
     }
 
-    void setValues(const QString &uuid, const QString &vitals, const QString &dt)
+    void setValues(const QString &state, const QJsonObject &data)
     {
         m_url="https://webhooks.mongodb-realm.com/api/client/v2.0/app/application-myhealth-dnhnf/service/myHealth-webHook/incoming_webhook/myHealthHook";
-        m_date = dt;
-        m_vitalsStr = vitals;
-        m_uuid = uuid;
+        m_data = data;
+        m_state = state;
     }
 
     void run()
@@ -28,15 +27,15 @@ public:
         QNetworkAccessManager networkManager;
         QNetworkRequest request(m_url);
 
+        QJsonDocument subJson(m_data["content"].toObject());
+
         QUrlQuery query;
-        query.addQueryItem("uuid", m_uuid);
-        query.addQueryItem("vitalsString", m_vitalsStr);
-        query.addQueryItem("date", m_date);
+        query.addQueryItem("state", m_state);
+        query.addQueryItem("content", subJson.toJson());
 
-        QByteArray postData = query.toString().toUtf8();
+        QByteArray postData = query.toString().toUtf8(); // doc.toJson(); // query.toString().toUtf8();
 
-        request.setRawHeader("Content-Type", "application/x-www-form-urlencoded");
-        request.setRawHeader("Content-Length",QByteArray::number(postData.size()));
+        request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
 
         QEventLoop loop;
 
@@ -63,13 +62,13 @@ public:
             {
                 int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
 
-                qDebug() << ".. Reply Code: " << statusCode;
+                // qDebug() << ".. Reply Code: " << statusCode;
 
                 if(reply->error() == QNetworkReply::NoError)
                 {
                     if(statusCode != 200)
                     {
-                        qDebug() << "Bad response";
+                        // qDebug() << "Bad response";
 
                         emit finished("Error");
                     }
@@ -116,7 +115,8 @@ signals:
     void finished(QString reply);
 
 private:
-    QString m_token,m_url, m_vitalsStr, m_uuid, m_date;
+    QString m_token,m_url, m_state;
+    QJsonObject m_data;
 };
 
 #endif // WEBINTERFACERUNNABLE_H

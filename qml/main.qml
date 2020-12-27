@@ -22,6 +22,11 @@ ApplicationWindow {
     property string pressureColor: "#e606c7"
     property string spo2Color: "#17b5da"
 
+    property string userFullName: ""
+    property int userAge: 0
+    property string userEmail: ""
+    property string password: ""
+
     property alias fontAwesomeFontLoader: fontAwesomeFontLoader
     property alias goBoldFontLoader: goBoldFontLoader
 
@@ -46,4 +51,15 @@ ApplicationWindow {
     }
 
     Component.onCompleted: QmlInterface.isUserLoggedIn = false;
+
+    Connections
+    {
+        target: QmlInterface
+
+        function onLoggedInUser(jsonUser)
+        {
+            userFullName = jsonUser["name"]
+            userAge = jsonUser["age"]
+        }
+    }
 }

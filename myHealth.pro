@@ -9,6 +9,7 @@ CONFIG += c++11
 SOURCES += \
         cpp/main.cpp \
         cpp/qmlinterface.cpp \
+        cpp/serialportinterface.cpp \
         cpp/socketclientinterface.cpp
 
 RESOURCES += qml.qrc
@@ -29,8 +30,8 @@ ANDROID_ABIS = armeabi-v7a x86 x86_64
 HEADERS += \
     cpp/WebInterfaceRunnable.h \
     cpp/databaseinterface.h \
-    cpp/markermodel.h \
     cpp/qmlinterface.h \
+    cpp/serialportinterface.h \
     cpp/socketclientinterface.h
 
 DISTFILES += \

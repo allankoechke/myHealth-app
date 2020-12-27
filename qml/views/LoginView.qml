@@ -14,6 +14,20 @@ Item {
     property alias email: email_.text
     property alias password: pass.text
 
+    RotationAnimation
+    {
+        target: spinIco
+        from: 0
+        to: 360
+        loops: RotationAnimation.Infinite
+        running: QmlInterface.processingUserLogin
+
+        onRunningChanged: {
+            if(!running)
+                spinIco.rotation = 0;
+        }
+    }
+
     ColumnLayout
     {
         width: root.width * 0.8
@@ -44,6 +58,7 @@ Item {
             placeholderText: qsTr("Email")
             Material.theme: Material.Dark
             Material.foreground: Qt.lighter("#c9cdd2", 1.5)
+            readOnly: QmlInterface.processingUserLogin
 
             Layout.fillWidth: true
             Layout.preferredHeight: 40
@@ -56,6 +71,7 @@ Item {
             echoMode: TextField.Password
             Material.theme: Material.Dark
             Material.foreground: Qt.lighter("#c9cdd2", 1.5)
+            readOnly: QmlInterface.processingUserLogin
 
             Layout.fillWidth: true
             Layout.preferredHeight: 40
@@ -75,17 +91,30 @@ Item {
         Rectangle
         {
             Layout.preferredHeight: 40
-            Layout.preferredWidth: 100
+            Layout.preferredWidth: 170
             Layout.alignment: Qt.AlignHCenter
 
             radius: height/2
             color: "#0677e9"
 
+            Icon
+            {
+                id: spinIco
+                size: 20
+                color: "white"
+                icon: "\uf3f4"
+                visible: QmlInterface.processingUserLogin
+
+                anchors.verticalCenter: parent.verticalCenter
+                anchors.left: parent.left
+                anchors.leftMargin: 10
+            }
+
             AppText
             {
                 color: "white"
                 size: 18
-                text: qsTr("Sign In")
+                text: QmlInterface.processingUserLogin? qsTr("Signing In"):qsTr("Sign In")
 
                 anchors.centerIn: parent
             }
@@ -94,27 +123,29 @@ Item {
             {
                 anchors.fill: parent
                 onClicked: {
-                    if(email.length < 5)
+                    if(QmlInterface.processingUserLogin === false)
                     {
-                        console.log("Email length: ", email.length)
-                        infoPopup.open()
-                        infoPopup.info = "Email field is inavalid!"
-                        infoPopup.infoLevel = 2
-                    }
+                        if(email.length < 5)
+                        {
+                            console.log("Email length: ", email.length)
+                            infoPopup.open()
+                            infoPopup.info = "Email field is inavalid!"
+                            infoPopup.infoLevel = 2
+                        }
 
-                    else if(password.length < 5)
-                    {
-                        console.log("Password length: ", password.length)
-                        infoPopup.open()
-                        infoPopup.info = "Password field is inavalid!"
-                        infoPopup.infoLevel = 2
-                    }
+                        else if(password.length < 5)
+                        {
+                            console.log("Password length: ", password.length)
+                            infoPopup.open()
+                            infoPopup.info = "Password field is inavalid!"
+                            infoPopup.infoLevel = 2
+                        }
 
-                    else
-                    {
-                        stackIndex = 3
-                        resetFields();
-                        QmlInterface.isUserLoggedIn = true;
+                        else
+                        {
+                            QmlInterface.processingUserLogin = true;
+                            QmlInterface.loginUser(email, password);
+                        }
                     }
                 }
             }
@@ -143,5 +174,27 @@ Item {
     {
         email = ""
         password = ""
+        QmlInterface.processingUserLogin = false;
+    }
+
+    Connections
+    {
+        target: QmlInterface
+
+        function onLoginStatusChanged(state, status)
+        {
+            QmlInterface.processingUserLogin = false;
+
+            if(state)
+            {
+                stackIndex = 3
+                resetFields();
+                QmlInterface.isUserLoggedIn = true;
+            } else {
+                infoPopup.open()
+                infoPopup.info = status;
+                infoPopup.infoLevel = 2
+            }
+        }
     }
 }

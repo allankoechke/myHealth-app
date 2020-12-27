@@ -16,6 +16,20 @@ Item {
     property alias password: pass.text
     property alias cpassword: cpass.text
 
+    RotationAnimation
+    {
+        target: spinIco
+        from: 0
+        to: 360
+        loops: RotationAnimation.Infinite
+        running: QmlInterface.processingUserRegistration
+
+        onRunningChanged: {
+            if(!running)
+                spinIco.rotation = 0;
+        }
+    }
+
     ColumnLayout
     {
         width: root.width * 0.8
@@ -46,6 +60,7 @@ Item {
             placeholderText: qsTr("Firstname Lastname")
             Material.theme: Material.Dark
             Material.foreground: Qt.lighter("#c9cdd2", 1.5)
+            readOnly: QmlInterface.processingUserRegistration
 
             Layout.fillWidth: true
             Layout.preferredHeight: 40
@@ -57,6 +72,7 @@ Item {
             placeholderText: qsTr("Email")
             Material.theme: Material.Dark
             Material.foreground: Qt.lighter("#c9cdd2", 1.5)
+            readOnly: QmlInterface.processingUserRegistration
 
             Layout.fillWidth: true
             Layout.preferredHeight: 40
@@ -69,6 +85,7 @@ Item {
             echoMode: TextField.Password
             Material.theme: Material.Dark
             Material.foreground: Qt.lighter("#c9cdd2", 1.5)
+            readOnly: QmlInterface.processingUserRegistration
 
             Layout.fillWidth: true
             Layout.preferredHeight: 40
@@ -81,6 +98,7 @@ Item {
             echoMode: TextField.Password
             Material.theme: Material.Dark
             Material.foreground: Qt.lighter("#c9cdd2", 1.5)
+            readOnly: QmlInterface.processingUserRegistration
 
             Layout.fillWidth: true
             Layout.preferredHeight: 40
@@ -89,17 +107,31 @@ Item {
         Rectangle
         {
             Layout.preferredHeight: 40
-            Layout.preferredWidth: 100
+            Layout.preferredWidth: 170
             Layout.alignment: Qt.AlignHCenter
 
             radius: height/2
             color: "#0677e9"
 
+            Icon
+            {
+                id: spinIco
+                size: 20
+                color: "white"
+                icon: "\uf3f4"
+
+                visible: QmlInterface.processingUserRegistration
+
+                anchors.verticalCenter: parent.verticalCenter
+                anchors.left: parent.left
+                anchors.leftMargin: 10
+            }
+
             AppText
             {
                 color: "white"
                 size: 18
-                text: qsTr("Sign Up")
+                text: QmlInterface.processingUserRegistration? qsTr("Signing Up"):qsTr("Sign Up")
 
                 anchors.centerIn: parent
             }
@@ -109,38 +141,41 @@ Item {
                 anchors.fill: parent
                 onClicked: {
 
-                    if(fullname.length < 5)
+                    if(QmlInterface.processingUserRegistration === false)
                     {
-                        infoPopup.open()
-                        infoPopup.infoLevel = 2
-                        infoPopup.info = "Name field is short/empty!"
-                    }
+                        if(fullname.length < 5)
+                        {
+                            infoPopup.open()
+                            infoPopup.infoLevel = 2
+                            infoPopup.info = "Name field is short/empty!"
+                        }
 
-                    else if(email.length < 5)
-                    {
-                        infoPopup.open()
-                        infoPopup.infoLevel = 2
-                        infoPopup.info = "Email field is short/empty!"
-                    }
+                        else if(email.length < 5)
+                        {
+                            infoPopup.open()
+                            infoPopup.infoLevel = 2
+                            infoPopup.info = "Email field is short/empty!"
+                        }
 
-                    else if(password.length < 5)
-                    {
-                        infoPopup.open()
-                        infoPopup.infoLevel = 2
-                        infoPopup.info = "Password field is short/empty!"
-                    }
+                        else if(password.length < 5)
+                        {
+                            infoPopup.open()
+                            infoPopup.infoLevel = 2
+                            infoPopup.info = "Password field is short/empty!"
+                        }
 
-                    else if(cpassword.length < 5 || password !== cpassword)
-                    {
-                        infoPopup.open()
-                        infoPopup.infoLevel = 2
-                        infoPopup.info = "Password fields do not match!"
-                    }
+                        else if(cpassword.length < 5 || password !== cpassword)
+                        {
+                            infoPopup.open()
+                            infoPopup.infoLevel = 2
+                            infoPopup.info = "Password fields do not match!"
+                        }
 
-                    else
-                    {
-                        stackIndex = 1
-                        resetFields()
+                        else
+                        {
+                            QmlInterface.processingUserRegistration = true;
+                            QmlInterface.addUser(fullname, 23, email, 2547768423, password)
+                        }
                     }
 
                 }
@@ -172,5 +207,33 @@ Item {
         email = "";
         password = "";
         cpassword = "";
+    }
+
+    Connections
+    {
+        target: QmlInterface
+
+        function onAccountCreatedSuccessfully(status)
+        {
+            QmlInterface.processingUserRegistration = false;
+            stackIndex = 1
+            resetFields()
+        }
+
+        function onEmailAlreadyExists()
+        {
+            QmlInterface.processingUserRegistration = false;
+            infoPopup.open()
+            infoPopup.infoLevel = 2
+            infoPopup.info = "Email exists"
+        }
+
+        function onAccountCreationFailed(error)
+        {
+            QmlInterface.processingUserRegistration = false;
+            infoPopup.open()
+            infoPopup.infoLevel = 2
+            infoPopup.info = error
+        }
     }
 }
