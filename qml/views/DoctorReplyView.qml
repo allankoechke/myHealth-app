@@ -88,7 +88,7 @@ Item {
                 id: lst
                 width: parent.width
                 height: parent.height
-                model: 8
+                model: doctorsReplyModel
                 spacing: 5
 
                 delegate: Component{
@@ -141,7 +141,7 @@ Item {
 
                                     AppText
                                     {
-                                        text: "Take a glass of minced juice and rest."
+                                        text: msg // "Take a glass of minced juice and rest."
                                         color: "white"
                                         elide: AppText.ElideRight
                                         size: 10
@@ -156,6 +156,28 @@ Item {
                     }
                 }
             }
+        }
+    }
+
+    ListModel
+    {
+        id: doctorsReplyModel
+    }
+
+    Connections
+    {
+        target: QmlInterface
+
+        function onNewDoctorReplyEmitted(dataObj)
+        {
+            doctorsReplyModel.append(dataObj);
+            // console.log("New Data Received!");
+        }
+
+        function onDoctorReplyReceived()
+        {
+            hasSyncedBefore = true;
+            doctorsReplyModel.clear();
         }
     }
 }

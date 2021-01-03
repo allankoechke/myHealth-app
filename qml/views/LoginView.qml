@@ -181,9 +181,11 @@ Item {
     {
         target: QmlInterface
 
-        function onLoginStatusChanged(state, status)
+        function onLoginStatusChanged(state, status, isDoctor)
         {
             QmlInterface.processingUserLogin = false;
+
+            loggedAsDoctor = isDoctor;
 
             if(state)
             {

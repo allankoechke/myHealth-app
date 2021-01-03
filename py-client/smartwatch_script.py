@@ -30,7 +30,8 @@ print("\n\nWaiting for connection at port ", PORT, " ...")
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
     try:
         s.connect((HOST, PORT))
-        s.sendall(b'Connection to client established ...\r\n')
+        # s.sendall(b'Connection to client established ...\r\n')
+        # sleep(3)
         
         while True:
             temperature = choice(bodyTemperatureArray)

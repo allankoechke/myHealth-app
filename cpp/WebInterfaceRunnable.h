@@ -20,6 +20,7 @@ public:
         m_url="https://webhooks.mongodb-realm.com/api/client/v2.0/app/application-myhealth-dnhnf/service/myHealth-webHook/incoming_webhook/myHealthHook";
         m_data = data;
         m_state = state;
+        errorJson = "{\"Status\":\"Error\",\"StatusInfo\":\"Network Error\",\"state\":\""+m_state+"\"}";
     }
 
     void run()
@@ -62,10 +63,12 @@ public:
             {
                 int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
 
-                // qDebug() << ".. Reply Code: " << statusCode;
+                qDebug() << ".. Reply Code: " << statusCode;
 
                 if(reply->error() == QNetworkReply::NoError)
                 {
+                    qDebug() << "Network!";
+
                     if(statusCode != 200)
                     {
                         // qDebug() << "Bad response";
@@ -90,7 +93,9 @@ public:
                 }
                 else
                 {
-                    emit finished("Error");
+                    // qDebug() << "Error! -> " << errorJson;
+
+                    emit finished(errorJson);
                 }
 
                 reply->deleteLater();
@@ -117,6 +122,7 @@ signals:
 private:
     QString m_token,m_url, m_state;
     QJsonObject m_data;
+    QString errorJson;
 };
 
 #endif // WEBINTERFACERUNNABLE_H

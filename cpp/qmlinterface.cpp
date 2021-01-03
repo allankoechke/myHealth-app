@@ -3,6 +3,12 @@
 QmlInterface::QmlInterface(QObject *parent) : QObject(parent)
 {
     m_processingUserLogin = m_processingUserRegistration=false;
+    m_previousSyncDateTime = QDateTime::currentDateTime();
+    m_isOnline = false;
+
+    m_doctorSyncTimer = new QTimer(this);
+    m_doctorSyncTimer->setInterval(20000);
+    connect(m_doctorSyncTimer, &QTimer::timeout, this, &QmlInterface::onDoctorSynctTimerTimeout);
 
     applicationDir=qApp->applicationDirPath();
 
@@ -29,13 +35,9 @@ QmlInterface::QmlInterface(QObject *parent) : QObject(parent)
 
     qDebug() << "Unique ID: " << m_uniqueDeviceID;
 
-    m_isOnline = false;
-    // emit isOnlineChanged(false);
-
-    m_WebInterface = new WebInterfaceRunnable(this);
+    m_ThreadPool.setMaxThreadCount(5);
     m_SocketInterface = new SocketClientInterface(this);
 
-    connect(m_WebInterface, &WebInterfaceRunnable::finished, this, &QmlInterface::onWebRunnableFinished);
     connect(m_SocketInterface, &SocketClientInterface::vitalsStringReceived, this, &QmlInterface::onHealthRecordReceived);
     connect(m_SocketInterface, &SocketClientInterface::socketDisconnected, this, &QmlInterface::onSocketDisconnected);
     connect(this, &QmlInterface::sendToCloudChanged, this, &QmlInterface::connect2Web);
@@ -71,14 +73,12 @@ void QmlInterface::connect2Web(const QString &state, const QJsonObject &data)
         emit isOnlineChanged(true);
     }
 
-    if(m_ThreadPool.activeThreadCount()==0 && !pendingWebJob)
-    {
-        pendingWebJob = true;
+    WebInterfaceRunnable * web = new WebInterfaceRunnable(this);
+    connect(web, &WebInterfaceRunnable::finished, this, &QmlInterface::onWebRunnableFinished);
 
-        m_WebInterface->setValues( state, data);
+    web->setValues( state, data);
 
-        m_ThreadPool.start(m_WebInterface);
-    }
+    m_ThreadPool.start(web);
 }
 
 void QmlInterface::addUser(const QString &name, const int &age, const QString &email, const QString &phone, const QString &pswd)
@@ -112,6 +112,39 @@ void QmlInterface::loginUser(const QString &uname, const QString &pswd)
     emit sendToCloudChanged("GetUser", userObj);
 }
 
+int QmlInterface::getTimerIntervalBetweenSync()
+{
+    return QDateTime::currentSecsSinceEpoch() - m_previousSyncDateTime.toSecsSinceEpoch();
+}
+
+void QmlInterface::setDoctorMode(bool state)
+{
+    if(state)
+    {
+        if(!m_doctorSyncTimer->isActive())
+        {
+            m_doctorSyncTimer->start();
+            onDoctorSynctTimerTimeout();
+        }
+    }
+    else
+        if(m_doctorSyncTimer->isActive())
+            m_doctorSyncTimer->stop();
+}
+
+void QmlInterface::sendReply(const QString &str)
+{
+    QJsonObject getRecordObj, getContentObj;
+    getContentObj.insert("reply_on", QDateTime::currentSecsSinceEpoch());
+    getContentObj.insert("msg", str);
+    getContentObj.insert("read", false);
+    getRecordObj.insert("state", "AddDoctorsReply");
+    getRecordObj.insert("content", getContentObj);
+    m_GetHealthRecordJson = getRecordObj;
+
+    emit sendToCloudChanged("AddDoctorsReply", getRecordObj);
+}
+
 QString QmlInterface::hashPassword(const QString &pswd)
 {
     QString salt = QString::number(QDateTime::currentSecsSinceEpoch());
@@ -142,14 +175,13 @@ bool QmlInterface::checkHashedPassword(const QString &pswd, const QString &hashe
 
 void QmlInterface::onWebRunnableFinished(const QString &str)
 {
-    pendingWebJob = false;
-
     qDebug() << "Reply String: " << str;
 
     QJsonDocument doc = QJsonDocument::fromJson(str.toUtf8());
     QJsonObject replyObj = doc.object();
 
     QString state = replyObj["state"].toString();
+    qDebug() << "State: " << state;
 
     if(state=="AddUser")
     {
@@ -173,37 +205,97 @@ void QmlInterface::onWebRunnableFinished(const QString &str)
         if( replyObj["Status"].toString() == "Success" )
         {
             if( replyObj["user"].toString()=="null" )
-                emit loginStatusChanged(false, "Unknown User Details");
+                emit loginStatusChanged(false, "Unknown User Details", false);
 
             else
             {
                 QJsonDocument doc = QJsonDocument::fromJson(replyObj["user"].toString().toUtf8());
                 QJsonObject userJson = doc.object();
 
+                qDebug() << "Is Doctor: " << userJson["role"].toString();
+
                 QString _pswd = userJson["password"].toString();
-                qDebug() << _pswd;
+                // qDebug() << _pswd;
                 auto loginStatus = checkHashedPassword(m_loggedUserPass, _pswd);
 
                 if( loginStatus )
                 {
-                    emit loginStatusChanged(true, "");
+                    emit loginStatusChanged(true, "", userJson["role"]=="doctor");
                     // Capture loggged in user details here
                     emit loggedInUser(userJson);
                 }
                 else
-                    emit loginStatusChanged(false, "Invalid Login Details");
+                    emit loginStatusChanged(false, "Invalid Login Details", false);
             }
+        }
+
+        else
+        {
+            emit loginStatusChanged(false, "No internet connection", false);
         }
     }
 
     else if(state=="AddHealthRecord")
     {
         qDebug() << "Add Health Record Feedback";
+
+        QStringList jsonList = replyObj["content"].toString().split("\n");
+
+        emit doctorReplyReceived();
+
+        m_previousSyncDateTime = QDateTime::currentDateTime();
+
+        for(int i=0; i<jsonList.size(); i++)
+        {
+            // qDebug() << "JSON Str: " << jsonList.at(i);
+
+            QJsonDocument doc = QJsonDocument::fromJson(jsonList.at(i).toUtf8());
+            QJsonObject dataObj = doc.object();
+
+            // QDateTime dt = QDateTime::fr
+
+            emit newDoctorReplyEmitted(dataObj);
+        }
+
+        // qDebug() << "Content: " << replyObj["content"].toString();
+
     }
 
     else if(state=="GetHealthRecord")
     {
         qDebug() << "Get Health Record Feedback";
+
+        if( replyObj["Status"].toString() == "Success" )
+        {
+            if( replyObj["content"].toString()=="null" )
+                qDebug() << "Empty String Received";
+
+            else
+            {
+                QStringList jsonList = replyObj["content"].toString().split("\n");
+
+                for(int i=jsonList.size()-1; i>=0; i--)
+                {
+                    QJsonDocument doc = QJsonDocument::fromJson(jsonList.at(i).toUtf8());
+                    QJsonObject dataObj = doc.object();
+
+                    lastSyncTime = ((int)dataObj["date"].toDouble())+1;
+
+                    emit chartDataReceived(lastSyncTime, dataObj["vitalsString"].toString());
+                }
+            }
+        }
+    }
+
+    else if(state=="AddDoctorsReply")
+    {
+        qDebug() << "Adding Doctor's Reply -> " << replyObj["Status"].toString();
+
+        if( replyObj["Status"].toString() == "Success" )
+            emit doctorsReplyStateChanged(true, "Added Successfully");
+
+        else
+            emit doctorsReplyStateChanged(false, "Empty Reply Received");
     }
 
     else
@@ -271,7 +363,9 @@ void QmlInterface::onHealthRecordReceived(const QString &str)
         emit userDiastolicPressureChanged(diast);
     }
 
-    QString dt = QDateTime::currentDateTime().toString("yyyy-MM-ddThh:mm:ss.zzz+03:00");
+    auto dt = QDateTime::currentDateTime().toSecsSinceEpoch();
+
+    // qDebug() << "Seconds: " << dt;
 
     QJsonObject content = m_addHealthRecordJson["content"].toObject();
     content["uuid"] = m_uniqueDeviceID;
@@ -281,6 +375,18 @@ void QmlInterface::onHealthRecordReceived(const QString &str)
     m_addHealthRecordJson["content"] = content;
 
     emit sendToCloudChanged("AddHealthRecord", m_addHealthRecordJson);
+}
+
+void QmlInterface::onDoctorSynctTimerTimeout()
+{
+    QJsonObject getRecordObj, getContentObj;
+    getContentObj.insert("start", lastSyncTime);
+    getContentObj.insert("end", QDateTime::currentSecsSinceEpoch());
+    getRecordObj.insert("state", "GetHealthRecord");
+    getRecordObj.insert("content", getContentObj);
+    m_GetHealthRecordJson = getRecordObj;
+
+    emit sendToCloudChanged("GetHealthRecord", getRecordObj);
 }
 
 

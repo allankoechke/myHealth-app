@@ -40,6 +40,9 @@ public:
     Q_INVOKABLE void connect2Web(const QString &state, const QJsonObject &data);
     Q_INVOKABLE void addUser(const QString &name, const int &age, const QString &email, const QString &phone, const QString &pswd);
     Q_INVOKABLE void loginUser(const QString &uname, const QString &pswd);
+    Q_INVOKABLE int getTimerIntervalBetweenSync();
+    Q_INVOKABLE void setDoctorMode(bool state);
+    Q_INVOKABLE void sendReply(const QString &str);
 
     QString hashPassword(const QString &pswd);
     bool checkHashedPassword(const QString &pswd, const QString &hashedPswd);
@@ -75,9 +78,22 @@ signals:
 
     void processingUserLoginChanged(bool processingUserLogin);
 
-    void loginStatusChanged(bool state, QString status);
+    void loginStatusChanged(bool state, QString status, bool is_doctor = false);
 
     void loggedInUser(QJsonObject user);
+
+    /// \brief Emits a signal to QML to inform it of new Doctor's Reply
+    /// data received from the cloud
+    void newDoctorReplyEmitted(QJsonObject data);
+
+    /// \brief Emitted to clear the reply model before appending the new data
+    void doctorReplyReceived();
+
+    /// \brief Emits plottable points
+    void chartDataReceived(int x, QString data);
+
+    /// \brief Emitted to show success/failure to send a doctors reply to the cloud
+    void doctorsReplyStateChanged(bool state, QString stateInfo);
 
 public slots:
     void onWebRunnableFinished(const QString &str_);
@@ -86,20 +102,24 @@ public slots:
 
     void onHealthRecordReceived(const QString &str);
 
+    void onDoctorSynctTimerTimeout();
+
 private:
     int m_healthStatusValue=70, m_userDiastolicPressure=80, m_userRespiratoryRate=17, m_userSystolicPressure=120, m_userSPO2=95, m_userHeartRate=75;
     double m_userTemperature=36.7;
     QString applicationDir;
     DatabaseInterface * m_database;
-    bool m_isUserLoggedIn, isRequestSent, pendingWebJob=false;
-    WebInterfaceRunnable * m_WebInterface;
+    bool m_isUserLoggedIn, isRequestSent;
     QThreadPool m_ThreadPool;
     QSettings * settings;
+    QTimer * m_doctorSyncTimer;
     QString m_uniqueDeviceID, m_loggedUserPass;
     SocketClientInterface * m_SocketInterface;
     bool m_isOnline;
-    QJsonObject m_addUserJson, m_addHealthRecordJson;
+    QJsonObject m_addUserJson, m_addHealthRecordJson, m_GetHealthRecordJson;
     bool m_processingUserRegistration, m_processingUserLogin;
+    QDateTime m_previousSyncDateTime;
+    int lastSyncTime = 0;
 };
 
 #endif // QMLINTERFACE_H

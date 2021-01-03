@@ -50,6 +50,6 @@ void SocketClientInterface::onReadyRead()
     for (QTcpSocket* socket : m_sockets) {
         // socket->write(QByteArray::fromStdString(sender->peerAddress().toString().toStdString() + ": " + datas.toStdString()));
         emit vitalsStringReceived(datas);
-        qDebug() << "...";
+        // qDebug() << "...";
     }
 }

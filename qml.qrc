@@ -17,7 +17,7 @@
         <file>qml/components/DashboardElement.qml</file>
         <file>assets/fonts/Gobold Regular.otf</file>
         <file>qml/components/ChartWidget.qml</file>
-        <file>qml/views/SearchView.qml</file>
+        <file>qml/views/DoctorReplyView.qml</file>
         <file>qml/components/MenuDrawer.qml</file>
         <file>qml/components/MenuButton.qml</file>
         <file>assets/models/DeviceModel.qml</file>
@@ -30,5 +30,6 @@
         <file>qml/views/HomePage.qml</file>
         <file>assets/myHealth-logo-small.png</file>
         <file>assets/smartwatch.png</file>
+        <file>qml/components/MessagePopup.qml</file>
     </qresource>
 </RCC>

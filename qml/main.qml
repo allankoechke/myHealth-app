@@ -27,10 +27,14 @@ ApplicationWindow {
     property string userEmail: ""
     property string password: ""
 
+    property bool loggedAsDoctor: false
+
     property alias fontAwesomeFontLoader: fontAwesomeFontLoader
     property alias goBoldFontLoader: goBoldFontLoader
 
     Material.theme: Material.Dark
+
+    onLoggedAsDoctorChanged: QmlInterface.setDoctorMode(loggedAsDoctor);
 
     AppView
     {

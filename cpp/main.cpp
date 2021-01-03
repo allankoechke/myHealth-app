@@ -2,7 +2,6 @@
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 #include "qmlinterface.h"
-#include "markermodel.h"
 
 int main(int argc, char *argv[])
 {
@@ -13,10 +12,8 @@ int main(int argc, char *argv[])
     QQmlApplicationEngine engine;
 
     QmlInterface qmlInterface;
-    MarkerModel markerModel;
 
     engine.rootContext()->setContextProperty("QmlInterface", &qmlInterface);
-    engine.rootContext()->setContextProperty("MarkerModel", &markerModel);
 
     const QUrl url(QStringLiteral("qrc:/qml/main.qml"));
 

@@ -26,11 +26,23 @@ Rectangle {
         anchors.fill: parent
         spacing: 5
 
+        ChartWidget
+        {
+            Layout.preferredWidth: root.width*0.9
+            Layout.preferredHeight: 120
+            Layout.alignment: Qt.AlignHCenter
+            Layout.bottomMargin: 10
+
+            visible: loggedAsDoctor
+        }
+
         Item {
             Layout.preferredWidth: root.width*0.8
             Layout.preferredHeight: 110
             Layout.alignment: Qt.AlignHCenter
             Layout.bottomMargin: 30
+
+            visible: !loggedAsDoctor
 
             RowLayout
             {
@@ -241,7 +253,7 @@ Rectangle {
                 {
                     color: foreBlue
                     size: 10
-                    text: "Last Sync : 5s ago"
+                    text: "Last Sync : " + lastSyncDate
 
                     height: 30
                     verticalAlignment: AppText.AlignVCenter
@@ -254,6 +266,7 @@ Rectangle {
                     width: p.width * 0.8
                     color: Qt.lighter(bgColor, 1.7)
                     radius: 4
+                    visible: !loggedAsDoctor
 
                     Icon
                     {
@@ -295,6 +308,62 @@ Rectangle {
                         onClicked: stackIndex=5
                     }
                 }
+
+                Rectangle
+                {
+                    height: 40
+                    width: p.width * 0.8
+                    color: Qt.lighter(bgColor, 1.7)
+                    radius: 4
+                    visible: loggedAsDoctor
+
+                    Icon
+                    {
+                        id: ico2
+                        color: "orange"
+                        size: 15
+                        icon: "\uf4ad"
+
+                        anchors.verticalCenter: parent.verticalCenter
+                        anchors.left: parent.left
+                        anchors.leftMargin: 5
+                    }
+
+                    AppText
+                    {
+                        size: 15
+                        text: "Give a Comment"
+                        color: "white"
+
+                        anchors.verticalCenter: parent.verticalCenter
+                        anchors.left: ico2.right
+                        anchors.leftMargin: 5
+                    }
+
+                    Icon
+                    {
+                        color: "white"
+                        size: 15
+                        icon: "\uf061"
+
+                        anchors.verticalCenter: parent.verticalCenter
+                        anchors.right: parent.right
+                        anchors.rightMargin: 5
+                    }
+
+                    MouseArea
+                    {
+                        anchors.fill: parent
+                        onClicked: {
+                            // if(msgPopup_isOpen)
+                            // {
+                            msgPopup.open()
+                            // }
+                        }
+                    }
+                }
+
+
             }
         }
 
