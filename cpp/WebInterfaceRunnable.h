@@ -93,7 +93,7 @@ public:
                 }
                 else
                 {
-                    // qDebug() << "Error! -> " << errorJson;
+                    qDebug() << "Error Connecting to Web -> " << reply->errorString();
 
                     emit finished(errorJson);
                 }

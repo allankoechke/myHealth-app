@@ -1,5 +1,9 @@
 QT += quick positioning network widgets sql
 
+android{
+    QT += androidextras
+}
+
 CONFIG += c++11
 
 # You can make your code fail to compile if it uses deprecated APIs.
@@ -35,4 +39,14 @@ HEADERS += \
     cpp/socketclientinterface.h
 
 DISTFILES += \
+    android/AndroidManifest.xml \
+    android/build.gradle \
+    android/gradle/wrapper/gradle-wrapper.jar \
+    android/gradle/wrapper/gradle-wrapper.properties \
+    android/gradlew \
+    android/gradlew.bat \
+    android/res/values/libs.xml \
     cpp/QmlInterface.qml
+
+ANDROID_PACKAGE_SOURCE_DIR = $$PWD/android
+android: include(/home/koech/Android/Sdk/android_openssl/openssl.pri)

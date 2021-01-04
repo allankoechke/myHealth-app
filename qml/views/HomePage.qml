@@ -29,9 +29,10 @@ Rectangle {
         ChartWidget
         {
             Layout.preferredWidth: root.width*0.9
-            Layout.preferredHeight: 120
+            Layout.preferredHeight: 200
             Layout.alignment: Qt.AlignHCenter
-            Layout.bottomMargin: 10
+            Layout.bottomMargin: 20
+            Layout.topMargin: 20
 
             visible: loggedAsDoctor
         }

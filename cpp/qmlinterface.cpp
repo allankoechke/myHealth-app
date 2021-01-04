@@ -5,6 +5,7 @@ QmlInterface::QmlInterface(QObject *parent) : QObject(parent)
     m_processingUserLogin = m_processingUserRegistration=false;
     m_previousSyncDateTime = QDateTime::currentDateTime();
     m_isOnline = false;
+    m_userState = "user";
 
     m_doctorSyncTimer = new QTimer(this);
     m_doctorSyncTimer->setInterval(20000);
@@ -40,6 +41,7 @@ QmlInterface::QmlInterface(QObject *parent) : QObject(parent)
 
     connect(m_SocketInterface, &SocketClientInterface::vitalsStringReceived, this, &QmlInterface::onHealthRecordReceived);
     connect(m_SocketInterface, &SocketClientInterface::socketDisconnected, this, &QmlInterface::onSocketDisconnected);
+    connect(this, &QmlInterface::socketStateChanged, m_SocketInterface, &SocketClientInterface::onSocketStatusChanged);
     connect(this, &QmlInterface::sendToCloudChanged, this, &QmlInterface::connect2Web);
 
     // Read the json schema for sending web requests
@@ -126,10 +128,18 @@ void QmlInterface::setDoctorMode(bool state)
             m_doctorSyncTimer->start();
             onDoctorSynctTimerTimeout();
         }
+
+        m_userState = "doctor";
+        emit socketStateChanged("doctor");
     }
     else
+    {
         if(m_doctorSyncTimer->isActive())
             m_doctorSyncTimer->stop();
+
+        m_userState = "user";
+        emit socketStateChanged("user");
+    }
 }
 
 void QmlInterface::sendReply(const QString &str)
@@ -272,6 +282,8 @@ void QmlInterface::onWebRunnableFinished(const QString &str)
 
             else
             {
+                m_previousSyncDateTime = QDateTime::currentDateTime();
+
                 QStringList jsonList = replyObj["content"].toString().split("\n");
 
                 for(int i=jsonList.size()-1; i>=0; i--)
@@ -282,6 +294,10 @@ void QmlInterface::onWebRunnableFinished(const QString &str)
                     lastSyncTime = ((int)dataObj["date"].toDouble())+1;
 
                     emit chartDataReceived(lastSyncTime, dataObj["vitalsString"].toString());
+
+                    onHealthRecordReceived(dataObj["vitalsString"].toString());
+
+                    // qDebug() << "1";
                 }
             }
         }
@@ -318,63 +334,70 @@ void QmlInterface::onSocketDisconnected()
 
 void QmlInterface::onHealthRecordReceived(const QString &str)
 {
-    QStringList v = str.split(":");
-
-    double temperature = v.at(0).toDouble();
-    int resp = v.at(1).toUInt();
-    int hr = v.at(2).toUInt();
-    int spo2 = v.at(3).toInt();
-    int syst = v.at(4).toInt();
-    int diast = v.at(5).toInt();
-
-    if(m_userTemperature != temperature)
+    // Guard from empy string splitting which crashes the app
+    if( str != "" )
     {
-        m_userTemperature = temperature;
-        emit userTemperatureChanged(temperature);
+        QStringList v = str.split(":");
+
+        qDebug() << "Vitals: " << str;
+
+        double temperature = v.at(0).toDouble();
+        int resp = v.at(1).toUInt();
+        int hr = v.at(2).toUInt();
+        int spo2 = v.at(3).toInt();
+        int syst = v.at(4).toInt();
+        int diast = v.at(5).toInt();
+
+        if(m_userTemperature != temperature)
+        {
+            m_userTemperature = temperature;
+            emit userTemperatureChanged(temperature);
+        }
+
+        if(m_userRespiratoryRate != resp)
+        {
+            m_userRespiratoryRate = resp;
+            emit userRespiratoryRateChanged(resp);
+        }
+
+        if(m_userHeartRate != hr)
+        {
+            m_userHeartRate = hr;
+            emit userHeartRateChanged(hr);
+        }
+
+        if(m_userSPO2 != spo2)
+        {
+            m_userSPO2 = spo2;
+            emit userSPO2Changed(spo2);
+        }
+
+        if(m_userSystolicPressure != syst)
+        {
+            m_userSystolicPressure = syst;
+            emit userSystolicPressureChanged(syst);
+        }
+
+        if(m_userDiastolicPressure != diast)
+        {
+            m_userDiastolicPressure = diast;
+            emit userDiastolicPressureChanged(diast);
+        }
+
+        if( m_userState == "user" )
+        {
+            auto dt = QDateTime::currentDateTime().toSecsSinceEpoch();
+
+            QJsonObject content = m_addHealthRecordJson["content"].toObject();
+            content["uuid"] = m_uniqueDeviceID;
+            content["vitalsString"] = str;
+            content["date"] = dt;
+            m_addHealthRecordJson["state"] = "AddHealthRecord";
+            m_addHealthRecordJson["content"] = content;
+
+            emit sendToCloudChanged("AddHealthRecord", m_addHealthRecordJson);
+        }
     }
-
-    if(m_userRespiratoryRate != resp)
-    {
-        m_userRespiratoryRate = resp;
-        emit userRespiratoryRateChanged(resp);
-    }
-
-    if(m_userHeartRate != hr)
-    {
-        m_userHeartRate = hr;
-        emit userHeartRateChanged(hr);
-    }
-
-    if(m_userSPO2 != spo2)
-    {
-        m_userSPO2 = spo2;
-        emit userSPO2Changed(spo2);
-    }
-
-    if(m_userSystolicPressure != syst)
-    {
-        m_userSystolicPressure = syst;
-        emit userSystolicPressureChanged(syst);
-    }
-
-    if(m_userDiastolicPressure != diast)
-    {
-        m_userDiastolicPressure = diast;
-        emit userDiastolicPressureChanged(diast);
-    }
-
-    auto dt = QDateTime::currentDateTime().toSecsSinceEpoch();
-
-    // qDebug() << "Seconds: " << dt;
-
-    QJsonObject content = m_addHealthRecordJson["content"].toObject();
-    content["uuid"] = m_uniqueDeviceID;
-    content["vitalsString"] = str;
-    content["date"] = dt;
-    m_addHealthRecordJson["state"] = "AddHealthRecord";
-    m_addHealthRecordJson["content"] = content;
-
-    emit sendToCloudChanged("AddHealthRecord", m_addHealthRecordJson);
 }
 
 void QmlInterface::onDoctorSynctTimerTimeout()

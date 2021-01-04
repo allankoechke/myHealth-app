@@ -5,12 +5,16 @@ import QtQuick.Layouts 1.3
 ChartView
 {
     antialiasing: true
-    legend.visible: false
+    // legend.visible: false
     margins.left: 0
     margins.right: 0
     margins.top: 0
     margins.bottom: 0
     backgroundColor: bgColor
+
+    legend.labelColor: "white"
+    legend.font: Qt.font({pixelSize: 8})
+    legend.markerShape: Legend.MarkerShapeCircle
 
     ValueAxis
     {
@@ -19,6 +23,7 @@ ChartView
         // labelFormat: "%.0f"
         // labelsFont:Qt.font({pixelSize: 8})
         // labelsColor: "grey"
+        tickCount: 10
         visible: false
     }
 
@@ -26,6 +31,7 @@ ChartView
     {
         id: yAxis
         labelFormat: "%.0f"
+        labelsColor: "white"
         min: 0; max: 121
         labelsFont:Qt.font({pointSize: 6})
     }
@@ -33,6 +39,7 @@ ChartView
     SplineSeries
     {
         id: temperatureGraph
+        name: "TEMP"
         axisX: xAxis
         axisY: yAxis
         color: temperatureColor
@@ -52,6 +59,7 @@ ChartView
     SplineSeries
     {
         id: rrGraph
+        name: "RR"
         axisX: xAxis
         axisY: yAxis
         color: respirationRateColor
@@ -71,6 +79,7 @@ ChartView
     SplineSeries
     {
         id: bpmGraph
+        name: "BPM"
         axisX: xAxis
         axisY: yAxis
 
@@ -89,6 +98,7 @@ ChartView
     SplineSeries
     {
         id: spo2Graph
+        name: "SPO2"
         axisX: xAxis
         axisY: yAxis
 
@@ -107,6 +117,7 @@ ChartView
     SplineSeries
     {
         id: sysGraph
+        name: "BP-SYS"
         axisX: xAxis
         axisY: yAxis
 
@@ -125,6 +136,7 @@ ChartView
     SplineSeries
     {
         id: diaGraph
+        name: "BP-DIA"
         axisX: xAxis
         axisY: yAxis
 
@@ -148,6 +160,10 @@ ChartView
         {
             //console.log("X: [9] ", temperatureGraph.at(9).x, " - [0] ", temperatureGraph.at(0).x)
             // 34.5:17:72:94:120:80
+
+            // Set the sync flag to true to show sync has already started
+            hasSyncedBefore = true;
+
             var arr = data.split(":")
 
             var xVal = temperatureGraph.at(9).x + 1

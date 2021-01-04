@@ -8,14 +8,7 @@ SocketClientInterface::SocketClientInterface(QObject *parent) : QObject(parent)
     connect(m_server, SIGNAL(newConnection()),
             this, SLOT(onNewConnection()));
 
-    if(!m_server->listen(QHostAddress::LocalHost, 9999))
-    {
-        qDebug() << "Server could not start";
-    }
-    else
-    {
-        qDebug() << "Server started!";
-    }
+    onSocketStatusChanged("user");
 }
 
 void SocketClientInterface::onNewConnection()
@@ -25,7 +18,8 @@ void SocketClientInterface::onNewConnection()
     connect(clientSocket, SIGNAL(stateChanged(QAbstractSocket::SocketState)), this, SLOT(onSocketStateChanged(QAbstractSocket::SocketState)));
 
     m_sockets.push_back(clientSocket);
-    for (QTcpSocket* socket : m_sockets) {
+    for (int i=0; i<m_sockets.size(); i++) {
+        QTcpSocket* socket = m_sockets.at(i);
         socket->write(QByteArray::fromStdString(clientSocket->peerAddress().toString().toStdString() + " connected to server !\n"));
     }
 }
@@ -44,12 +38,37 @@ void SocketClientInterface::onSocketStateChanged(QAbstractSocket::SocketState so
 void SocketClientInterface::onReadyRead()
 {
     QTcpSocket* sender = static_cast<QTcpSocket*>(QObject::sender());
-    QString datas = sender->readAll().data();
+    QByteArray _d = sender->readAll();
+    QString datas = _d.data();
     qDebug() << "Received: " << datas;
 
-    for (QTcpSocket* socket : m_sockets) {
-        // socket->write(QByteArray::fromStdString(sender->peerAddress().toString().toStdString() + ": " + datas.toStdString()));
-        emit vitalsStringReceived(datas);
-        // qDebug() << "...";
+    emit vitalsStringReceived(datas);
+}
+
+void SocketClientInterface::onSocketStatusChanged(QString state)
+{
+    qDebug() << "Switching to " << state << " mode";
+
+    if(state == "user")
+    {
+        if(!m_server->listen(QHostAddress::LocalHost, 9999))
+        {
+            qDebug() << "Server could not start";
+        }
+        else
+        {
+            qDebug() << "Server started!";
+        }
+
+        qDebug() << "Switching to " << state << " mode";
+    }
+    else
+    {
+        // In doctor mode, close the server
+        if(m_server->isListening())
+        {
+            m_server->close();
+            qDebug() << "Socket server closed since its a doctor mode!";
+        }
     }
 }

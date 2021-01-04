@@ -21,6 +21,9 @@ private slots:
     void onSocketStateChanged(QAbstractSocket::SocketState socketState);
     void onReadyRead();
 
+public slots:
+    void onSocketStatusChanged(QString state);
+
 private:
     QTcpServer * m_server;
     QList<QTcpSocket*>  m_sockets;

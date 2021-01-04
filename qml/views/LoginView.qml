@@ -33,6 +33,12 @@ Item {
         width: root.width * 0.8
         height: root.height * 0.9
         anchors.centerIn: parent
+        spacing: 15
+
+        Item{
+            Layout.fillHeight: true
+            Layout.fillWidth: true
+        }
 
         Image
         {
@@ -59,9 +65,10 @@ Item {
             Material.theme: Material.Dark
             Material.foreground: Qt.lighter("#c9cdd2", 1.5)
             readOnly: QmlInterface.processingUserLogin
+            font.pixelSize: 15
 
             Layout.fillWidth: true
-            Layout.preferredHeight: 40
+            Layout.preferredHeight: 60
         }
 
         TextField
@@ -72,9 +79,10 @@ Item {
             Material.theme: Material.Dark
             Material.foreground: Qt.lighter("#c9cdd2", 1.5)
             readOnly: QmlInterface.processingUserLogin
+            font.pixelSize: 15
 
             Layout.fillWidth: true
-            Layout.preferredHeight: 40
+            Layout.preferredHeight: 60
         }
 
         AppText
@@ -168,6 +176,11 @@ Item {
                 }
             }
         }
+
+        Item{
+            Layout.fillHeight: true
+            Layout.fillWidth: true
+        }
     }
 
     function resetFields()
@@ -186,6 +199,10 @@ Item {
             QmlInterface.processingUserLogin = false;
 
             loggedAsDoctor = isDoctor;
+
+            // If switching accounts, reset this flag to restart sync timer
+            // if(loggedAsDoctor)
+            hasSyncedBefore = false;
 
             if(state)
             {

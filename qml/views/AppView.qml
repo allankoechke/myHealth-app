@@ -21,7 +21,7 @@ Rectangle {
     Timer
     {
         id: switchToLogin
-        running: hasSyncedBefore
+        running: true
         interval: 3500
         repeat: false
 
@@ -34,39 +34,36 @@ Rectangle {
     Timer
     {
         id: lastSyncTimer
-        running: true
+        running: hasSyncedBefore
         interval: 1000
         repeat: true
 
         onTriggered: {
+            let t = QmlInterface.getTimerIntervalBetweenSync();
 
-            if(hasSyncedBefore)
+            if(t<60)
             {
-                let t = QmlInterface.getTimerIntervalBetweenSync();
-
-                if(t<60)
-                {
-                    lastSyncDate = t.toString() + "s ago";
-                }
-
-                else if(t>=60 && t<3600)
-                {
-                    const mins = Math.floor(t/60)
-                    console.log(">> ", mins, " ", mins.toString())
-                    lastSyncDate = mins + (mins===1? "min ago":"mins ago");
-                }
-
-                else if(t>=3600 && t<86400)
-                {
-                    const hr = Math.floor(t/3600)
-                    lastSyncDate = hr + (hr===1? "hour ago":"hours ago");
-                }
-
-                else
-                {
-                    lastSyncDate = "A couple of days ago";
-                }
+                lastSyncDate = t.toString() + "s ago";
             }
+
+            else if(t>=60 && t<3600)
+            {
+                const mins = Math.floor(t/60)
+                console.log(">> ", mins, " ", mins.toString())
+                lastSyncDate = mins + (mins===1? "min ago":"mins ago");
+            }
+
+            else if(t>=3600 && t<86400)
+            {
+                const hr = Math.floor(t/3600)
+                lastSyncDate = hr + (hr===1? "hour ago":"hours ago");
+            }
+
+            else
+            {
+                lastSyncDate = "A couple of days ago";
+            }
+
             // console.log("Time Interval: ", t)
         }
     }

@@ -95,6 +95,10 @@ signals:
     /// \brief Emitted to show success/failure to send a doctors reply to the cloud
     void doctorsReplyStateChanged(bool state, QString stateInfo);
 
+    /// \brief Emitted When changing between doctor and user modes to open or close the
+    /// socket server appropriately
+    void socketStateChanged(QString state);
+
 public slots:
     void onWebRunnableFinished(const QString &str_);
 
@@ -107,7 +111,7 @@ public slots:
 private:
     int m_healthStatusValue=70, m_userDiastolicPressure=80, m_userRespiratoryRate=17, m_userSystolicPressure=120, m_userSPO2=95, m_userHeartRate=75;
     double m_userTemperature=36.7;
-    QString applicationDir;
+    QString applicationDir, m_userState;
     DatabaseInterface * m_database;
     bool m_isUserLoggedIn, isRequestSent;
     QThreadPool m_ThreadPool;
