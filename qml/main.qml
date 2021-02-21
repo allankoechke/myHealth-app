@@ -10,7 +10,7 @@ ApplicationWindow {
     width: 320
     height: 568
     visible: true
-    title: qsTr("myHealth App")
+    title: isProfMode? qsTr("myHealth App"):qsTr("myHealth App")
 
     property string bgColor: "#071e28"
     property string bgColorLighter: "#082835"
@@ -28,6 +28,7 @@ ApplicationWindow {
     property string password: ""
 
     property bool loggedAsDoctor: false
+    property bool isProfMode: true
 
     property alias fontAwesomeFontLoader: fontAwesomeFontLoader
     property alias goBoldFontLoader: goBoldFontLoader

@@ -11,6 +11,11 @@ QmlInterface::QmlInterface(QObject *parent) : QObject(parent)
     m_doctorSyncTimer->setInterval(20000);
     connect(m_doctorSyncTimer, &QTimer::timeout, this, &QmlInterface::onDoctorSynctTimerTimeout);
 
+    m_vitalsTimer = new QTimer(this);
+    m_vitalsTimer->setInterval(7000);
+    connect(m_vitalsTimer, &QTimer::timeout, this, &QmlInterface::onVitalsTimerTimeout);
+
+
     applicationDir=qApp->applicationDirPath();
 
     qApp->setApplicationName("myHealth App");
@@ -39,8 +44,8 @@ QmlInterface::QmlInterface(QObject *parent) : QObject(parent)
     m_ThreadPool.setMaxThreadCount(5);
     m_SocketInterface = new SocketClientInterface(this);
 
-    connect(m_SocketInterface, &SocketClientInterface::vitalsStringReceived, this, &QmlInterface::onHealthRecordReceived);
-    connect(m_SocketInterface, &SocketClientInterface::socketDisconnected, this, &QmlInterface::onSocketDisconnected);
+    // (m_SocketInterface, &SocketClientInterface::vitalsStringReceived, this, &QmlInterface::onHealthRecordReceived);
+    // connect(m_SocketInterface, &SocketClientInterface::socketDisconnected, this, &QmlInterface::onSocketDisconnected);
     connect(this, &QmlInterface::socketStateChanged, m_SocketInterface, &SocketClientInterface::onSocketStatusChanged);
     connect(this, &QmlInterface::sendToCloudChanged, this, &QmlInterface::connect2Web);
 
@@ -65,6 +70,14 @@ QmlInterface::QmlInterface(QObject *parent) : QObject(parent)
     recordObj.insert("state", "AddHealthRecord");
     recordObj.insert("content", contentObj);
     m_addHealthRecordJson = recordObj;
+
+
+    std::random_shuffle(bodyTemperatureArray.begin(), bodyTemperatureArray.end());
+    std::random_shuffle(respirationRateArray.begin(), respirationRateArray.end());
+    std::random_shuffle(spo2Array.begin(), spo2Array.end());
+    std::random_shuffle(heartBeatArray.begin(), heartBeatArray.end());
+    std::random_shuffle(systolicPressureArray.begin(), systolicPressureArray.end());
+    std::random_shuffle(diastolicPressureArray.begin(), diastolicPressureArray.end());
 }
 
 void QmlInterface::connect2Web(const QString &state, const QJsonObject &data)
@@ -121,6 +134,7 @@ int QmlInterface::getTimerIntervalBetweenSync()
 
 void QmlInterface::setDoctorMode(bool state)
 {
+
     if(state)
     {
         if(!m_doctorSyncTimer->isActive())
@@ -131,9 +145,15 @@ void QmlInterface::setDoctorMode(bool state)
 
         m_userState = "doctor";
         emit socketStateChanged("doctor");
+
+        if(m_vitalsTimer->isActive())
+            m_vitalsTimer->stop();
     }
     else
     {
+        m_vitalsTimer->start();
+        qDebug() << "Timer started? " << m_vitalsTimer->isActive();
+
         if(m_doctorSyncTimer->isActive())
             m_doctorSyncTimer->stop();
 
@@ -321,6 +341,9 @@ void QmlInterface::onWebRunnableFinished(const QString &str)
         if(m_processingUserRegistration)
             emit accountCreationFailed("Operation Failed (403)!");
     }
+
+    onDoctorSynctTimerTimeout();
+    m_doctorSyncTimer->stop();
 }
 
 void QmlInterface::onSocketDisconnected()
@@ -410,6 +433,29 @@ void QmlInterface::onDoctorSynctTimerTimeout()
     m_GetHealthRecordJson = getRecordObj;
 
     emit sendToCloudChanged("GetHealthRecord", getRecordObj);
+}
+
+void QmlInterface::onVitalsTimerTimeout()
+{
+    float temperature = bodyTemperatureArray.at(10);
+    int rr = respirationRateArray.at(10);
+    int spo2 = spo2Array.at(5);
+    int hb = heartBeatArray.at(10);
+    int syst = systolicPressureArray.at(10);
+    int diast = diastolicPressureArray.at(10);
+
+    QString stringToSend = QString::number(temperature)+":"+QString::number(rr)+":"+QString::number(hb)+":"+QString::number(spo2)+":"+QString::number(syst)+":"+QString::number(diast);
+
+    qDebug() << stringToSend;
+
+    onHealthRecordReceived(stringToSend);
+
+    std::random_shuffle(bodyTemperatureArray.begin(), bodyTemperatureArray.end());
+    std::random_shuffle(respirationRateArray.begin(), respirationRateArray.end());
+    std::random_shuffle(spo2Array.begin(), spo2Array.end());
+    std::random_shuffle(heartBeatArray.begin(), heartBeatArray.end());
+    std::random_shuffle(systolicPressureArray.begin(), systolicPressureArray.end());
+    std::random_shuffle(diastolicPressureArray.begin(), diastolicPressureArray.end());
 }
 
 

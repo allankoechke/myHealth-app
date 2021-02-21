@@ -209,6 +209,7 @@ Item {
                 stackIndex = 3
                 resetFields();
                 QmlInterface.isUserLoggedIn = true;
+                QmlInterface.setDoctorMode(isDoctor);
             } else {
                 infoPopup.open()
                 infoPopup.info = status;

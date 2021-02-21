@@ -108,6 +108,8 @@ public slots:
 
     void onDoctorSynctTimerTimeout();
 
+    void onVitalsTimerTimeout();
+
 private:
     int m_healthStatusValue=70, m_userDiastolicPressure=80, m_userRespiratoryRate=17, m_userSystolicPressure=120, m_userSPO2=95, m_userHeartRate=75;
     double m_userTemperature=36.7;
@@ -116,7 +118,7 @@ private:
     bool m_isUserLoggedIn, isRequestSent;
     QThreadPool m_ThreadPool;
     QSettings * settings;
-    QTimer * m_doctorSyncTimer;
+    QTimer * m_doctorSyncTimer, *m_vitalsTimer;
     QString m_uniqueDeviceID, m_loggedUserPass;
     SocketClientInterface * m_SocketInterface;
     bool m_isOnline;
@@ -124,6 +126,14 @@ private:
     bool m_processingUserRegistration, m_processingUserLogin;
     QDateTime m_previousSyncDateTime;
     int lastSyncTime = 0;
+
+    QList<float> bodyTemperatureArray = {35.5, 35.6, 35.7, 35.8, 35.9, 36.0, 36.1, 36.2,
+                            36.3, 36.4, 36.5, 36.6, 36.7, 36.8, 37.0, 37.1, 37.2, 37.3, 37.4};
+    QList<int> respirationRateArray = {12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30};
+    QList<int> spo2Array = {92, 93, 94, 95, 96, 97, 98, 99, 100};
+    QList<int> heartBeatArray = {60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99};
+    QList<int> systolicPressureArray = {80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120};
+    QList<int> diastolicPressureArray = {60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80};
 };
 
 #endif // QMLINTERFACE_H
