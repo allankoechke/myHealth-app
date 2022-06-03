@@ -88,6 +88,31 @@ void QmlInterface::connect2Web(const QString &state, const QJsonObject &data)
         emit isOnlineChanged(true);
     }
 
+    if (state == "GetUser") {
+        // If we are logging in just give a dummy user and return
+        QString dt = QDateTime::currentDateTime().toString("yyyy-MM-ddThh:mm:ss.zzz+03:00");
+
+       QJsonObject reply, content;
+        content["name"] = "Dummy User";
+        content["role"] = "user";
+        content["age"] = 30;
+        content["enrolled_on"] = dt;
+        content["email"] = "user@email.com";
+        content["phone_no"] = "+254700000000";
+        content["password"] = "Hashed Password";
+        content["change_password"] = false;
+        reply["state"] = "GetUser";
+        reply["Status"] = "Success";
+        reply["user"] = content;
+
+        QJsonDocument doc(reply);
+        QString strJson(doc.toJson(QJsonDocument::Compact));
+
+        onWebRunnableFinished(strJson);
+
+        return;
+    }
+
     WebInterfaceRunnable * web = new WebInterfaceRunnable(this);
     connect(web, &WebInterfaceRunnable::finished, this, &QmlInterface::onWebRunnableFinished);
 
@@ -244,13 +269,16 @@ void QmlInterface::onWebRunnableFinished(const QString &str)
 
                 qDebug() << "Is Doctor: " << userJson["role"].toString();
 
-                QString _pswd = userJson["password"].toString();
-                // qDebug() << _pswd;
-                auto loginStatus = checkHashedPassword(m_loggedUserPass, _pswd);
+                //  QString _pswd = userJson["password"].toString();
+
+                auto loginStatus = true; // checkHashedPassword(m_loggedUserPass, _pswd);
 
                 if( loginStatus )
                 {
                     emit loginStatusChanged(true, "", userJson["role"]=="doctor");
+
+                    qDebug() << "User logged in ... " << userJson;
+
                     // Capture loggged in user details here
                     emit loggedInUser(userJson);
                 }
